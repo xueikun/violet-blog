@@ -6,6 +6,7 @@ const nav = [
   { href: url(""), label: "首页" },
   { href: url("posts/"), label: "文章" },
   { href: url("archive/"), label: "归档" },
+  { href: url("tags/"), label: "标签" },
   { href: url("guestbook/"), label: "留言" },
   { href: url("about/"), label: "关于" },
 ];
@@ -35,6 +36,29 @@ const isActive = (href: string) =>
         ))
       }
     </nav>
+
+    <button
+      id="search-open"
+      class="search-btn"
+      type="button"
+      aria-label="站内搜索"
+      title="站内搜索 (Ctrl+K)"
+    >
+      <svg
+        viewBox="0 0 16 16"
+        width="15"
+        height="15"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.6"
+        stroke-linecap="round"
+        aria-hidden="true"
+      >
+        <circle cx="7" cy="7" r="4.6"></circle>
+        <path d="M10.6 10.6 L14.2 14.2"></path>
+      </svg>
+      <span class="search-kbd" aria-hidden="true">Ctrl K</span>
+    </button>
 
     <button
       id="theme-toggle"
@@ -155,6 +179,37 @@ const isActive = (href: string) =>
     transform: rotate(-15deg);
   }
 
+  /* 搜索入口 —— 快捷键提示只在宽屏显示 */
+  .search-btn {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 38px;
+    padding: 0 12px;
+    border-radius: var(--radius-pill);
+    border: 1.5px solid var(--border);
+    background: var(--bg-elevated);
+    color: var(--text-muted);
+    font-size: 12.5px;
+    transition: all var(--dur) var(--ease);
+  }
+
+  .search-btn:hover {
+    color: var(--primary-strong);
+    border-color: var(--primary);
+  }
+
+  .search-kbd {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    padding: 1px 5px;
+    border-radius: 5px;
+    background: var(--bg-sunken);
+    border: 1px solid var(--border);
+    color: var(--text-faint);
+  }
+
   .ico-moon {
     display: none;
   }
@@ -170,14 +225,44 @@ const isActive = (href: string) =>
   @media (max-width: 640px) {
     .hd-inner {
       height: 58px;
-      gap: 10px;
+      gap: 6px;
     }
     .brand-text {
       display: none;
     }
+    .brand-mark {
+      font-size: 18px;
+    }
+    /* 导航项变多后窄屏放不下:先压缩间距,再不够就横向滚动 */
+    .nav {
+      min-width: 0;
+      gap: 2px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      /* 纯 alpha 遮罩,非主题色 */
+      mask-image: linear-gradient(90deg, #000 92%, transparent);
+    }
+    .nav::-webkit-scrollbar {
+      display: none;
+    }
     .nav-link {
-      padding: 6px 10px;
-      font-size: 13px;
+      padding: 6px 8px;
+      font-size: 12.5px;
+      white-space: nowrap;
+    }
+    .search-btn {
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      justify-content: center;
+    }
+    .search-kbd {
+      display: none;
+    }
+    .theme-btn {
+      width: 36px;
+      height: 36px;
     }
   }
 </style>

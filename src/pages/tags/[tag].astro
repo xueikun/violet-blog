@@ -1,0 +1,157 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PostCard from "../../components/PostCard.astro";
+import { buildTags, type Post, type TagGroup } from "../../utils/tags";
+import { url } from "../../utils/url";
+
+// 注意:getStaticPaths 会被提升到模块作用域,拿不到 frontmatter 里的局部常量,
+// 所以排序逻辑必须在函数内部定义。
+export async function getStaticPaths() {
+  const order = (list: Post[]) =>
+    [...list].sort((a, b) => {
+      if (a.data.top !== b.data.top) return a.data.top ? -1 : 1;
+      return b.data.date.valueOf() - a.data.date.valueOf();
+    });
+
+  const allPosts = await getCollection("posts", ({ data }) => !data.draft);
+  const groups = buildTags(order(allPosts));
+
+  return groups.map((group) => {
+    const posts = order(group.posts);
+
+    /* 相关标签 —— 与本标签共现过的其他标签,按共现次数排序 */
+    const counter = new Map<string, { tag: string; slug: string; n: number }>();
+    for (const post of posts) {
+      for (const tag of post.data.tags) {
+        if (tag === group.tag) continue;
+        const meta = groups.find((g) => g.tag === tag);
+        if (!meta) continue;
+        const hit = counter.get(meta.slug);
+        if (hit) hit.n += 1;
+        else counter.set(meta.slug, { tag: meta.tag, slug: meta.slug, n: 1 });
+      }
+    }
+    const related = [...counter.values()]
+      .sort((a, b) => b.n - a.n)
+      .slice(0, 8);
+
+    return { params: { tag: group.slug }, props: { group, posts, related } };
+  });
+}
+
+const { group, posts, related } = Astro.props as {
+  group: TagGroup;
+  posts: Post[];
+  related: { tag: string; slug: string; n: number }[];
+};
+---
+
+<BaseLayout
+  title={`标签:${group.tag}`}
+  description={`「${group.tag}」标签下的全部文章,共 ${posts.length} 篇。`}
+>
+  <div class="wrap page">
+    <header class="hd reveal">
+      <p class="kicker">// TAG</p>
+      <h1 class="name">{group.tag}</h1>
+      <p class="count">{posts.length} 篇文章</p>
+    </header>
+
+    {
+      related.length > 0 && (
+        <div class="related">
+          <span class="related-label">相关标签</span>
+          {related.map((r) => (
+            <a class="pill" href={url(`tags/${r.slug}/`)}>
+              {r.tag} <em>{r.n}</em>
+            </a>
+          ))}
+        </div>
+      )
+    }
+
+    <ul class="list">
+      {posts.map((post) => (
+        <li class="reveal">
+          <PostCard post={post} />
+        </li>
+      ))}
+    </ul>
+
+    <p class="back">
+      <a href={url("tags/")}>← 全部标签</a>
+    </p>
+  </div>
+</BaseLayout>
+
+<style>
+  .hd {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .kicker {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    color: var(--text-faint);
+    letter-spacing: 0.08em;
+  }
+
+  .name {
+    font-family: var(--font-serif);
+    font-size: 36px;
+    font-weight: 500;
+    margin-top: 4px;
+    letter-spacing: 0.02em;
+  }
+
+  .count {
+    margin-top: 6px;
+    font-size: 13.5px;
+    color: var(--text-muted);
+  }
+
+  .related {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+    padding-bottom: 30px;
+    margin-bottom: 30px;
+    border-bottom: 1.5px dashed var(--border);
+  }
+
+  .related-label {
+    font-size: 12.5px;
+    color: var(--text-faint);
+    margin-right: 2px;
+  }
+
+  .related em {
+    font-style: normal;
+    font-size: 0.8em;
+    opacity: 0.6;
+    margin-left: 2px;
+  }
+
+  .list {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(272px, 1fr));
+    gap: 20px;
+  }
+
+  .back {
+    margin-top: 40px;
+    text-align: center;
+    font-size: 13.5px;
+  }
+
+  @media (max-width: 640px) {
+    .name {
+      font-size: 28px;
+    }
+  }
+</style>

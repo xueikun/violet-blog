@@ -2,8 +2,10 @@
 import { getCollection, render } from "astro:content";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import Giscus from "../../components/Giscus.astro";
+import site from "../../data/site.json";
 import { formatCnDate, readingTime } from "../../utils/date";
-import { url } from "../../utils/url";
+import { tagSlug } from "../../utils/tags";
+import { url, absoluteUrl } from "../../utils/url";
 
 export async function getStaticPaths() {
   const posts = await getCollection("posts", ({ data }) => !data.draft);
@@ -27,9 +29,61 @@ const nextPost = idx - 1 >= 0 ? all[idx - 1] : undefined;
 
 const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
 const minutes = readingTime(post.body ?? "");
+
+const origin = Astro.site?.toString() ?? "https://xueikun.github.io";
+const postUrl = absoluteUrl(origin, `posts/${post.id}/`);
+const cover = data.cover
+  ? /^https?:\/\//.test(data.cover)
+    ? data.cover
+    : absoluteUrl(origin, data.cover)
+  : undefined;
+
+const articleLd: Record<string, unknown> = {
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  mainEntityOfPage: { "@type": "WebPage", "@id": postUrl },
+  headline: data.title,
+  description: data.excerpt,
+  url: postUrl,
+  datePublished: data.date.toISOString(),
+  dateModified: data.date.toISOString(),
+  author: { "@type": "Person", name: site.author },
+  publisher: {
+    "@type": "Organization",
+    name: site.name,
+    logo: { "@type": "ImageObject", url: absoluteUrl(origin, "favicon.svg") },
+  },
+  inLanguage: "zh-CN",
+  articleSection: data.category,
+  keywords: data.tags.join(", "),
+  wordCount: (post.body ?? "").length,
+  ...(cover ? { image: [cover] } : {}),
+};
+
+const breadcrumbLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "首页", item: absoluteUrl(origin, "") },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "文章",
+      item: absoluteUrl(origin, "posts/"),
+    },
+    { "@type": "ListItem", position: 3, name: data.title, item: postUrl },
+  ],
+};
 ---
 
-<BaseLayout title={data.title} description={data.excerpt}>
+<BaseLayout
+  title={data.title}
+  description={data.excerpt}
+  image={data.cover}
+  type="article"
+  publishedTime={data.date}
+  jsonLd={[articleLd, breadcrumbLd]}
+>
   <div class="progress" id="progress"></div>
 
   <article class="wrap page">
@@ -48,7 +102,7 @@ const minutes = readingTime(post.body ?? "");
       <div class="head-tags">
         {
           data.tags.map((tag) => (
-            <a class="pill" href={url(`posts/?tag=${encodeURIComponent(tag)}`)}>
+            <a class="pill" href={url(`tags/${tagSlug(tag)}/`)}>
               {tag}
             </a>
           ))

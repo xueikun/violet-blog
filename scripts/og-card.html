@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <title>OG card</title>
+    <!--
+      分享卡片模板 —— 由 scripts/build-og.mjs 用无头 Chromium 渲染成
+      public/og-default.png(1200×630)。
+
+      改站名 / 文案后重新跑 npm run og 即可,不用手改图片。
+      这里刻意把色值写死:模板不进打包流程,拿不到 tokens.css 的 CSS 变量。
+    -->
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+      }
+
+      html,
+      body {
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+      }
+
+      body {
+        position: relative;
+        background: #faf7fc;
+        color: #3d3548;
+        font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* 背景装饰 */
+      .glow {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(2px);
+      }
+
+      .glow-a {
+        width: 620px;
+        height: 620px;
+        right: -180px;
+        top: -170px;
+        background: radial-gradient(
+          circle at 40% 45%,
+          #efebf9 0%,
+          #e8f2f9 52%,
+          rgba(250, 247, 252, 0) 72%
+        );
+      }
+
+      .glow-b {
+        width: 380px;
+        height: 380px;
+        left: -140px;
+        bottom: -160px;
+        background: radial-gradient(
+          circle,
+          #fbf1da 0%,
+          rgba(250, 247, 252, 0) 70%
+        );
+      }
+
+      /* 内描边 —— 呼应站点的贴纸风 */
+      .frame {
+        position: absolute;
+        inset: 26px;
+        border: 2px solid #e6e0f0;
+        border-radius: 22px;
+      }
+
+      .stage {
+        position: absolute;
+        inset: 0;
+        padding: 62px 84px 128px;
+        display: flex;
+        align-items: center;
+        gap: 40px;
+      }
+
+      .col {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .kicker {
+        font-family: "Cascadia Code", Consolas, monospace;
+        font-size: 17px;
+        letter-spacing: 0.14em;
+        color: #bdb7cc;
+      }
+
+      .title {
+        font-family: "Source Han Serif SC Heavy", "STZhongsong", "SimSun", serif;
+        font-size: 88px;
+        font-weight: 900;
+        line-height: 1.1;
+        letter-spacing: 0.06em;
+        margin-top: 10px;
+      }
+
+      .latin {
+        font-family: Georgia, "Times New Roman", serif;
+        font-style: italic;
+        font-size: 25px;
+        color: #8b7bc7;
+        margin-top: 2px;
+        letter-spacing: 0.02em;
+      }
+
+      .rule {
+        width: 108px;
+        height: 0;
+        border-top: 3px dashed #e6e0f0;
+        margin: 26px 0 22px;
+      }
+
+      .subtitle {
+        font-size: 27px;
+        color: #6f5ca8;
+        letter-spacing: 0.02em;
+      }
+
+      .desc {
+        font-size: 18px;
+        line-height: 1.75;
+        color: #8f88a3;
+        margin-top: 14px;
+        max-width: 30em;
+      }
+
+      .pills {
+        display: flex;
+        gap: 10px;
+        margin-top: 28px;
+      }
+
+      .pill {
+        font-size: 16px;
+        padding: 5px 18px;
+        border-radius: 999px;
+        background: #efebf9;
+        color: #6f5ca8;
+        border: 1.5px solid #ded5f2;
+      }
+
+      .pill.blue {
+        background: #e8f2f9;
+        color: #5d8bb0;
+        border-color: #d3e6f2;
+      }
+
+      .pill.amber {
+        background: #fbf1da;
+        color: #a87f1c;
+        border-color: #f0e0bb;
+      }
+
+      .foot {
+        position: absolute;
+        left: 84px;
+        bottom: 58px;
+        font-family: "Cascadia Code", Consolas, monospace;
+        font-size: 16px;
+        color: #bdb7cc;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+      }
+
+      .foot .mark {
+        color: #8b7bc7;
+        font-size: 18px;
+      }
+
+      .art {
+        flex: none;
+        width: 330px;
+        height: 330px;
+      }
+
+      .wax {
+        font-family: "Noto Sans SC", sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="glow glow-a"></div>
+    <div class="glow glow-b"></div>
+    <div class="frame"></div>
+
+    <div class="stage">
+      <div class="col">
+        <p class="kicker">// VIOLET EVERGARDEN</p>
+        <h1 class="title">薇尔莉特</h1>
+        <p class="latin">Auto Memory Doll</p>
+        <div class="rule"></div>
+        <p class="subtitle">把想说的话,写成文字</p>
+        <p class="desc">
+          自动手记人偶的书桌。记录技术笔记、生活随笔与追番感想。
+        </p>
+        <div class="pills">
+          <span class="pill">技术笔记</span>
+          <span class="pill blue">生活随笔</span>
+          <span class="pill amber">追番感想</span>
+        </div>
+      </div>
+
+      <svg
+        class="art"
+        width="330"
+        height="330"
+        viewBox="0 0 320 320"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <defs>
+          <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#efebf9" />
+            <stop offset="100%" stop-color="#e8f2f9" />
+          </linearGradient>
+        </defs>
+
+        <circle cx="160" cy="160" r="146" fill="url(#sky)" />
+        <circle
+          cx="160"
+          cy="160"
+          r="146"
+          stroke="#8b7bc7"
+          stroke-width="1.5"
+          opacity="0.55"
+        />
+        <circle
+          cx="160"
+          cy="160"
+          r="132"
+          stroke="#8b7bc7"
+          stroke-width="0.8"
+          opacity="0.3"
+          stroke-dasharray="3 7"
+        />
+
+        <g>
+          <path
+            d="M74 88 Q77 97 86 100 Q77 103 74 112 Q71 103 62 100 Q71 97 74 88 Z"
+            fill="#8b7bc7"
+          />
+          <path
+            d="M246 96 Q248.5 103.5 256 106 Q248.5 108.5 246 116 Q243.5 108.5 236 106 Q243.5 103.5 246 96 Z"
+            fill="#d4a537"
+          />
+          <path
+            d="M250 214 Q252.5 221.5 260 224 Q252.5 226.5 250 234 Q247.5 226.5 240 224 Q247.5 221.5 250 214 Z"
+            fill="#7fb3d5"
+          />
+          <circle cx="92" cy="212" r="3" fill="#7fb3d5" />
+          <circle cx="196" cy="66" r="2.5" fill="#8b7bc7" />
+          <circle cx="60" cy="152" r="2" fill="#d4a537" />
+        </g>
+
+        <rect
+          x="86"
+          y="124"
+          width="148"
+          height="106"
+          rx="8"
+          fill="#ffffff"
+          stroke="#8b7bc7"
+          stroke-width="2"
+        />
+        <path d="M92 220 L146 178" stroke="#8b7bc7" stroke-width="1.5" opacity="0.45" />
+        <path d="M228 220 L174 178" stroke="#8b7bc7" stroke-width="1.5" opacity="0.45" />
+        <path
+          d="M86 124 L160 190 L234 124"
+          stroke="#8b7bc7"
+          stroke-width="2"
+          stroke-linejoin="round"
+        />
+
+        <g transform="translate(160 190)">
+          <circle r="17.5" fill="#d4a537" />
+          <circle r="17.5" stroke="#6f5ca8" stroke-width="1" opacity="0.35" />
+          <path
+            d="M-6.5 -5 L0 6.5 L6.5 -5"
+            stroke="#ffffff"
+            stroke-width="2.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </g>
+
+        <g transform="translate(66 176)">
+          <g fill="#8b7bc7" opacity="0.9">
+            <ellipse cx="0" cy="-11" rx="6" ry="10" />
+            <ellipse cx="0" cy="-11" rx="6" ry="10" transform="rotate(72)" />
+            <ellipse cx="0" cy="-11" rx="6" ry="10" transform="rotate(144)" />
+            <ellipse cx="0" cy="-11" rx="6" ry="10" transform="rotate(216)" />
+            <ellipse cx="0" cy="-11" rx="6" ry="10" transform="rotate(288)" />
+          </g>
+          <circle r="3" fill="#d4a537" />
+        </g>
+      </svg>
+    </div>
+
+    <div class="foot">
+      <span class="mark">✧</span>
+      <span>xueikun.github.io/violet-blog</span>
+    </div>
+  </body>
+</html>

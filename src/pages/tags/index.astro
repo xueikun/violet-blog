@@ -1,0 +1,148 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { buildCategories, buildTags, type Post } from "../../utils/tags";
+import { url } from "../../utils/url";
+import { formatDate } from "../../utils/date";
+
+const posts = (await getCollection("posts", ({ data }) => !data.draft)).sort(
+  (a: Post, b: Post) => b.data.date.valueOf() - a.data.date.valueOf()
+);
+
+const tags = buildTags(posts);
+const categories = buildCategories(posts);
+const maxCount = Math.max(...tags.map((t) => t.posts.length), 1);
+---
+
+<BaseLayout title="标签" description="按标签与分类翻阅全部文章">
+  <div class="wrap page">
+    <h1 class="sec-title">
+      标签 <span class="sec-sub"
+        >{tags.length} 个标签 · {categories.length} 个分类 · {posts.length} 篇文章</span
+      >
+    </h1>
+
+    <div class="cloud">
+      {
+        tags.map((t) => (
+          <a
+            class="pill tag"
+            href={url(`tags/${t.slug}/`)}
+            style={`font-size:${(12.5 + (t.posts.length / maxCount) * 5).toFixed(1)}px`}
+          >
+            {t.tag} <em>{t.posts.length}</em>
+          </a>
+        ))
+      }
+    </div>
+
+    <div class="blocks">
+      {
+        categories.map((cat) => (
+          <section class="cat sticker reveal">
+            <div class="cat-head">
+              <h2 class="cat-name">{cat.name}</h2>
+              <span class="cat-count">{cat.posts.length} 篇</span>
+            </div>
+            <ul class="cat-list">
+              {cat.posts.slice(0, 5).map((post) => (
+                <li>
+                  <a class="cat-link" href={url(`posts/${post.id}/`)}>
+                    <span class="cat-title">{post.data.title}</span>
+                    <time class="cat-date" datetime={post.data.date.toISOString()}>
+                      {formatDate(post.data.date).slice(5)}
+                    </time>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))
+      }
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    margin-bottom: 44px;
+  }
+
+  .tag {
+    padding: 3px 14px;
+  }
+
+  .tag em {
+    font-style: normal;
+    font-size: 0.78em;
+    opacity: 0.62;
+    margin-left: 5px;
+  }
+
+  .blocks {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 18px;
+  }
+
+  .cat {
+    padding: 18px 20px 16px;
+  }
+
+  .cat-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1.5px dashed var(--border);
+  }
+
+  .cat-name {
+    font-size: 17px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .cat-count {
+    flex: none;
+    font-size: 12px;
+    color: var(--text-faint);
+    font-family: var(--font-mono);
+  }
+
+  .cat-list {
+    list-style: none;
+    margin-top: 10px;
+  }
+
+  .cat-link {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 5px 0;
+    color: var(--text);
+    font-size: 14px;
+  }
+
+  .cat-link:hover {
+    color: var(--primary-strong);
+  }
+
+  .cat-title {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .cat-date {
+    flex: none;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-faint);
+  }
+</style>

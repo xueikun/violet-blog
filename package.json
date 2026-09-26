@@ -8,6 +8,8 @@
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
+    "og": "node scripts/build-og.mjs",
+    "shot": "node scripts/shot.mjs",
     "astro": "astro"
   },
   "dependencies": {

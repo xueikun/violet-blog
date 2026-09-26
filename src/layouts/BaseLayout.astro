@@ -3,26 +3,64 @@ import "../styles/global.css";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import Petals from "../components/Petals.astro";
+import Search from "../components/Search.astro";
 import site from "../data/site.json";
-import { url } from "../utils/url";
+import { url, absoluteUrl } from "../utils/url";
 
 interface Props {
   title?: string;
   description?: string;
+  /** 相对 public/ 的分享图,默认站内统一 OG 图 */
+  image?: string;
+  type?: "website" | "article";
+  /** 文章页传日期,输出 article:published_time */
+  publishedTime?: Date;
+  /** 页面级结构化数据,会与站点级 WebSite 一起输出 */
+  jsonLd?: Record<string, unknown>[];
 }
 
-const { title, description = site.description } = Astro.props;
+const {
+  title,
+  description = site.description,
+  image = "og-default.png",
+  type = "website",
+  publishedTime,
+  jsonLd = [],
+} = Astro.props;
+
 const pageTitle = title
   ? `${title} · ${site.name}`
   : `${site.name} · ${site.subtitle}`;
 
 const fallbackOrigin = "https://xueikun.github.io";
+const origin = Astro.site?.toString() ?? fallbackOrigin;
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site ?? fallbackOrigin);
 // base 部署时首页的 pathname 是 /violet-blog(无尾斜杠),统一补齐
 if (!canonicalUrl.pathname.endsWith("/")) {
   canonicalUrl.pathname = `${canonicalUrl.pathname}/`;
 }
 const canonical = canonicalUrl.href;
+const imageUrl = /^https?:\/\//.test(image)
+  ? image
+  : absoluteUrl(origin, image);
+
+/* 站点级结构化数据 —— 每页都带,文章页再叠一个 BlogPosting */
+const siteLd: Record<string, unknown> = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: site.name,
+  alternateName: site.latin,
+  url: absoluteUrl(origin, ""),
+  description: site.description,
+  inLanguage: "zh-CN",
+  author: { "@type": "Person", name: site.author },
+  potentialAction: {
+    "@type": "SearchAction",
+    target: `${absoluteUrl(origin, "")}?q={search_term_string}`,
+    "query-input": "required name=search_term_string",
+  },
+};
+const ldBlocks = [siteLd, ...jsonLd];
 ---
 
 <!doctype html>
@@ -32,6 +70,7 @@ const canonical = canonicalUrl.href;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
+    <meta name="author" content={site.author} />
     <link rel="canonical" href={canonical} />
     <meta name="generator" content={Astro.generator} />
     <link rel="icon" type="image/svg+xml" href={url("favicon.svg")} />
@@ -42,12 +81,35 @@ const canonical = canonicalUrl.href;
       href={url("rss.xml")}
     />
 
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={type} />
     <meta property="og:site_name" content={site.name} />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:image" content={imageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={pageTitle} />
+    <meta property="og:locale" content="zh_CN" />
+    {publishedTime && (
+      <meta
+        property="article:published_time"
+        content={publishedTime.toISOString()}
+      />
+    )}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={imageUrl} />
+
+    {
+      ldBlocks.map((block) => (
+        <script
+          type="application/ld+json"
+          set:html={JSON.stringify(block)}
+        />
+      ))
+    }
 
     <script is:inline>
       (function () {
@@ -72,6 +134,7 @@ const canonical = canonicalUrl.href;
     </main>
     <Footer />
     <Petals />
+    <Search />
 
     <script>
       const items = document.querySelectorAll(".reveal");
