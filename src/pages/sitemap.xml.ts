@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import { getCollection } from "astro:content";
+import { absoluteUrl } from "../utils/url";
 
 interface Entry {
   loc: string;
@@ -8,19 +9,18 @@ interface Entry {
 }
 
 export const GET: APIRoute = async (context) => {
-  const origin =
-    context.site?.toString().replace(/\/$/, "") ?? "https://example.com";
+  const origin = context.site?.toString() ?? "https://xueikun.github.io";
 
   const posts = await getCollection("posts", ({ data }) => !data.draft);
 
   const entries: Entry[] = [
-    { loc: `${origin}/`, priority: "1.0" },
-    { loc: `${origin}/posts/`, priority: "0.9" },
-    { loc: `${origin}/archive/`, priority: "0.6" },
-    { loc: `${origin}/guestbook/`, priority: "0.5" },
-    { loc: `${origin}/about/`, priority: "0.5" },
+    { loc: absoluteUrl(origin, ""), priority: "1.0" },
+    { loc: absoluteUrl(origin, "posts/"), priority: "0.9" },
+    { loc: absoluteUrl(origin, "archive/"), priority: "0.6" },
+    { loc: absoluteUrl(origin, "guestbook/"), priority: "0.5" },
+    { loc: absoluteUrl(origin, "about/"), priority: "0.5" },
     ...posts.map((post) => ({
-      loc: `${origin}/posts/${post.id}/`,
+      loc: absoluteUrl(origin, `posts/${post.id}/`),
       lastmod: post.data.date.toISOString().slice(0, 10),
       priority: "0.8",
     })),

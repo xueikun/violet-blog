@@ -4,6 +4,7 @@ import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import Petals from "../components/Petals.astro";
 import site from "../data/site.json";
+import { url } from "../utils/url";
 
 interface Props {
   title?: string;
@@ -15,8 +16,13 @@ const pageTitle = title
   ? `${title} · ${site.name}`
   : `${site.name} · ${site.subtitle}`;
 
-const fallbackOrigin = "https://example.com";
-const canonical = new URL(Astro.url.pathname, Astro.site ?? fallbackOrigin);
+const fallbackOrigin = "https://xueikun.github.io";
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site ?? fallbackOrigin);
+// base 部署时首页的 pathname 是 /violet-blog(无尾斜杠),统一补齐
+if (!canonicalUrl.pathname.endsWith("/")) {
+  canonicalUrl.pathname = `${canonicalUrl.pathname}/`;
+}
+const canonical = canonicalUrl.href;
 ---
 
 <!doctype html>
@@ -28,12 +34,12 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? fallbackOrigin);
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     <meta name="generator" content={Astro.generator} />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href={url("favicon.svg")} />
     <link
       rel="alternate"
       type="application/rss+xml"
       title={site.name}
-      href="/rss.xml"
+      href={url("rss.xml")}
     />
 
     <meta property="og:type" content="website" />

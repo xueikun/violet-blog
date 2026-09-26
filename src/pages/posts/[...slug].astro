@@ -3,6 +3,7 @@ import { getCollection, render } from "astro:content";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import Giscus from "../../components/Giscus.astro";
 import { formatCnDate, readingTime } from "../../utils/date";
+import { url } from "../../utils/url";
 
 export async function getStaticPaths() {
   const posts = await getCollection("posts", ({ data }) => !data.draft);
@@ -47,7 +48,7 @@ const minutes = readingTime(post.body ?? "");
       <div class="head-tags">
         {
           data.tags.map((tag) => (
-            <a class="pill" href={`/posts/?tag=${encodeURIComponent(tag)}`}>
+            <a class="pill" href={url(`posts/?tag=${encodeURIComponent(tag)}`)}>
               {tag}
             </a>
           ))
@@ -81,7 +82,7 @@ const minutes = readingTime(post.body ?? "");
     <nav class="pager">
       {
         nextPost ? (
-          <a class="pager-link sticker" href={`/posts/${nextPost.id}/`}>
+          <a class="pager-link sticker" href={url(`posts/${nextPost.id}/`)}>
             <span class="pager-label">← 下一篇</span>
             <span class="pager-title">{nextPost.data.title}</span>
           </a>
@@ -91,7 +92,7 @@ const minutes = readingTime(post.body ?? "");
       }
       {
         prevPost ? (
-          <a class="pager-link sticker" href={`/posts/${prevPost.id}/`}>
+          <a class="pager-link sticker" href={url(`posts/${prevPost.id}/`)}>
             <span class="pager-label">上一篇 →</span>
             <span class="pager-title">{prevPost.data.title}</span>
           </a>
@@ -109,7 +110,7 @@ const minutes = readingTime(post.body ?? "");
     </div>
 
     <p class="back">
-      <a href="/posts/">← 返回文章列表</a>
+      <a href={url("posts/")}>← 返回文章列表</a>
     </p>
   </article>
 </BaseLayout>

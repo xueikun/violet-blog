@@ -1,22 +1,24 @@
 ---
 import site from "../data/site.json";
+import { url } from "../utils/url";
 
 const nav = [
-  { href: "/", label: "首页" },
-  { href: "/posts/", label: "文章" },
-  { href: "/archive/", label: "归档" },
-  { href: "/guestbook/", label: "留言" },
-  { href: "/about/", label: "关于" },
+  { href: url(""), label: "首页" },
+  { href: url("posts/"), label: "文章" },
+  { href: url("archive/"), label: "归档" },
+  { href: url("guestbook/"), label: "留言" },
+  { href: url("about/"), label: "关于" },
 ];
 
+const home = url("");
 const path = Astro.url.pathname;
 const isActive = (href: string) =>
-  href === "/" ? path === "/" : path.startsWith(href);
+  href === home ? path === home : path.startsWith(href);
 ---
 
 <header class="hd">
   <div class="wrap hd-inner">
-    <a class="brand" href="/">
+    <a class="brand" href={url("")}>
       <span class="brand-mark" aria-hidden="true">✧</span>
       <span class="brand-text">{site.name}</span>
     </a>

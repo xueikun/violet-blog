@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from "astro:content";
 import { formatDate } from "../utils/date";
+import { url } from "../utils/url";
 
 interface Props {
   post: CollectionEntry<"posts">;
@@ -13,7 +14,7 @@ const { data } = post;
 <a
   class="card sticker sticker-hover reveal"
   data-tilt
-  href={`/posts/${post.id}/`}
+  href={url(`posts/${post.id}/`)}
 >
   <div class="cover">
     {

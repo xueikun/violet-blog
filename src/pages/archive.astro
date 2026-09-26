@@ -2,6 +2,7 @@
 import { getCollection } from "astro:content";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { formatDate } from "../utils/date";
+import { url } from "../utils/url";
 
 const posts = (await getCollection("posts", ({ data }) => !data.draft)).sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
@@ -51,7 +52,7 @@ const years = [...new Set(posts.map((p) => p.data.date.getFullYear()))].sort(
                       <time datetime={post.data.date.toISOString()}>
                         {formatDate(post.data.date).slice(5)}
                       </time>
-                      <a class="tl-link" href={`/posts/${post.id}/`}>
+                      <a class="tl-link" href={url(`posts/${post.id}/`)}>
                         {post.data.title}
                       </a>
                       <span class="tl-cat">{post.data.category}</span>
