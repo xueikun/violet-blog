@@ -1,0 +1,120 @@
+---
+import "../styles/global.css";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import Petals from "../components/Petals.astro";
+import site from "../data/site.json";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title, description = site.description } = Astro.props;
+const pageTitle = title
+  ? `${title} · ${site.name}`
+  : `${site.name} · ${site.subtitle}`;
+
+const fallbackOrigin = "https://example.com";
+const canonical = new URL(Astro.url.pathname, Astro.site ?? fallbackOrigin);
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title={site.name}
+      href="/rss.xml"
+    />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta name="twitter:card" content="summary" />
+
+    <script is:inline>
+      (function () {
+        try {
+          var t = localStorage.getItem("theme");
+          if (t !== "light" && t !== "dark") {
+            t = window.matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light";
+          }
+          document.documentElement.setAttribute("data-theme", t);
+        } catch (e) {
+          document.documentElement.setAttribute("data-theme", "light");
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <Header />
+    <main>
+      <slot />
+    </main>
+    <Footer />
+    <Petals />
+
+    <script>
+      const items = document.querySelectorAll(".reveal");
+      if (!("IntersectionObserver" in window)) {
+        items.forEach((el) => el.classList.add("is-in"));
+      } else {
+        const io = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add("is-in");
+                io.unobserve(entry.target);
+              }
+            });
+          },
+          { rootMargin: "0px 0px -40px 0px" }
+        );
+        items.forEach((el, i) => {
+          (el as HTMLElement).style.animationDelay = `${Math.min(i, 6) * 60}ms`;
+          io.observe(el);
+        });
+      }
+    </script>
+
+    <script>
+      const reduceMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches;
+      const noHover = window.matchMedia("(hover: none)").matches;
+
+      if (!reduceMotion && !noHover) {
+        const MAX_DEG = 7;
+        document.querySelectorAll("[data-tilt]").forEach((el) => {
+          const node = el as HTMLElement;
+
+          node.addEventListener("mousemove", (event) => {
+            const rect = node.getBoundingClientRect();
+            const px = (event.clientX - rect.left) / rect.width - 0.5;
+            const py = (event.clientY - rect.top) / rect.height - 0.5;
+            node.style.setProperty("--ry", `${(px * MAX_DEG).toFixed(2)}deg`);
+            node.style.setProperty("--rx", `${(-py * MAX_DEG).toFixed(2)}deg`);
+          });
+
+          node.addEventListener("mouseleave", () => {
+            node.style.setProperty("--ry", "0deg");
+            node.style.setProperty("--rx", "0deg");
+          });
+        });
+      }
+    </script>
+  </body>
+</html>

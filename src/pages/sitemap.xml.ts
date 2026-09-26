@@ -1,0 +1,46 @@
+import type { APIRoute } from "astro";
+import { getCollection } from "astro:content";
+
+interface Entry {
+  loc: string;
+  lastmod?: string;
+  priority: string;
+}
+
+export const GET: APIRoute = async (context) => {
+  const origin =
+    context.site?.toString().replace(/\/$/, "") ?? "https://example.com";
+
+  const posts = await getCollection("posts", ({ data }) => !data.draft);
+
+  const entries: Entry[] = [
+    { loc: `${origin}/`, priority: "1.0" },
+    { loc: `${origin}/posts/`, priority: "0.9" },
+    { loc: `${origin}/archive/`, priority: "0.6" },
+    { loc: `${origin}/guestbook/`, priority: "0.5" },
+    { loc: `${origin}/about/`, priority: "0.5" },
+    ...posts.map((post) => ({
+      loc: `${origin}/posts/${post.id}/`,
+      lastmod: post.data.date.toISOString().slice(0, 10),
+      priority: "0.8",
+    })),
+  ];
+
+  const body = entries
+    .map((entry) => {
+      const lastmod = entry.lastmod
+        ? `\n    <lastmod>${entry.lastmod}</lastmod>`
+        : "";
+      return `  <url>\n    <loc>${entry.loc}</loc>${lastmod}\n    <priority>${entry.priority}</priority>\n  </url>`;
+    })
+    .join("\n");
+
+  return new Response(
+    `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${body}
+</urlset>
+`,
+    { headers: { "Content-Type": "application/xml; charset=utf-8" } }
+  );
+};

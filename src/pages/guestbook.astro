@@ -1,0 +1,32 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Giscus from "../components/Giscus.astro";
+---
+
+<BaseLayout title="留言板" description="留个言吧,什么都可以说">
+  <div class="wrap page">
+    <h1 class="sec-title">
+      留言板 <span class="sec-sub">想说点什么都可以</span>
+    </h1>
+
+    <p class="intro">
+      这里不限话题——提问、纠错、推荐番剧、或者只是路过打个招呼都行。<br />
+      留言由 GitHub Discussions 承载,需要登录 GitHub 账号才能发言。
+    </p>
+
+    <Giscus mapping="specific" term="guestbook" />
+  </div>
+</BaseLayout>
+
+<style>
+  .intro {
+    font-size: 14px;
+    line-height: 1.9;
+    color: var(--text-muted);
+    padding: 18px 22px;
+    border-left: 3px solid var(--primary);
+    border-radius: var(--radius-sm);
+    background: var(--primary-soft);
+    margin-bottom: 8px;
+  }
+</style>

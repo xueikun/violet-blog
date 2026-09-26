@@ -1,0 +1,62 @@
+---
+import site from "../data/site.json";
+const year = new Date().getFullYear();
+---
+
+<footer class="ft">
+  <div class="wrap ft-inner">
+    <div class="ft-line">
+      <span class="ft-mark">✧</span>
+      <span>{site.name}</span>
+    </div>
+    <p class="ft-latin">{site.latin}</p>
+    <p class="ft-meta">
+      © {site.since}–{year} {site.author} · Powered by
+      <a href="https://astro.build" target="_blank" rel="noopener">Astro</a>
+    </p>
+  </div>
+</footer>
+
+<style>
+  .ft {
+    border-top: 1.5px solid var(--border);
+    padding: 32px 0;
+    margin-top: 40px;
+  }
+
+  .ft-inner {
+    text-align: center;
+  }
+
+  .ft-line {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 15px;
+    color: var(--text-muted);
+  }
+
+  .ft-mark {
+    color: var(--primary);
+  }
+
+  .ft-latin {
+    margin-top: 5px;
+    font-family: var(--font-serif);
+    font-size: 12.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
+  .ft-meta {
+    margin-top: 8px;
+    font-size: 12.5px;
+    color: var(--text-faint);
+  }
+
+  .ft-meta a {
+    color: var(--text-muted);
+  }
+</style>

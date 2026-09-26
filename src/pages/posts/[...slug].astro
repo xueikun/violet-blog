@@ -1,0 +1,299 @@
+---
+import { getCollection, render } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Giscus from "../../components/Giscus.astro";
+import { formatCnDate, readingTime } from "../../utils/date";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("posts", ({ data }) => !data.draft);
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content, headings } = await render(post);
+const { data } = post;
+
+const all = (
+  await getCollection("posts", ({ data: d }) => !d.draft)
+).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const idx = all.findIndex((p) => p.id === post.id);
+const prevPost = idx + 1 < all.length ? all[idx + 1] : undefined;
+const nextPost = idx - 1 >= 0 ? all[idx - 1] : undefined;
+
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
+const minutes = readingTime(post.body ?? "");
+---
+
+<BaseLayout title={data.title} description={data.excerpt}>
+  <div class="progress" id="progress"></div>
+
+  <article class="wrap page">
+    <header class="head reveal">
+      <div class="head-meta">
+        <time datetime={data.date.toISOString()}
+          >{formatCnDate(data.date)}</time
+        >
+        <span class="dot">·</span>
+        <span>{data.category}</span>
+        <span class="dot">·</span>
+        <span>约 {minutes} 分钟</span>
+        {data.mood && <span class="mood">{data.mood}</span>}
+      </div>
+      <h1 class="head-title">{data.title}</h1>
+      <div class="head-tags">
+        {
+          data.tags.map((tag) => (
+            <a class="pill" href={`/posts/?tag=${encodeURIComponent(tag)}`}>
+              {tag}
+            </a>
+          ))
+        }
+      </div>
+    </header>
+
+    <div class="layout">
+      <div class="prose reveal">
+        <Content />
+      </div>
+
+      {
+        toc.length > 0 && (
+          <aside class="side">
+            <nav class="toc sticker" aria-label="目录">
+              <p class="toc-title">目录</p>
+              <ul>
+                {toc.map((h) => (
+                  <li class:list={[`d${h.depth}`]}>
+                    <a href={`#${h.slug}`}>{h.text}</a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          </aside>
+        )
+      }
+    </div>
+
+    <nav class="pager">
+      {
+        nextPost ? (
+          <a class="pager-link sticker" href={`/posts/${nextPost.id}/`}>
+            <span class="pager-label">← 下一篇</span>
+            <span class="pager-title">{nextPost.data.title}</span>
+          </a>
+        ) : (
+          <span></span>
+        )
+      }
+      {
+        prevPost ? (
+          <a class="pager-link sticker" href={`/posts/${prevPost.id}/`}>
+            <span class="pager-label">上一篇 →</span>
+            <span class="pager-title">{prevPost.data.title}</span>
+          </a>
+        ) : (
+          <span></span>
+        )
+      }
+    </nav>
+
+    <div class="comment-block">
+      <h2 class="sec-title">
+        留言 <span class="sec-sub">由 GitHub 驱动</span>
+      </h2>
+      <Giscus />
+    </div>
+
+    <p class="back">
+      <a href="/posts/">← 返回文章列表</a>
+    </p>
+  </article>
+</BaseLayout>
+
+<script>
+  const bar = document.getElementById("progress");
+  const onScroll = () => {
+    if (!bar) return;
+    const h = document.documentElement;
+    const total = h.scrollHeight - h.clientHeight;
+    const pct = total > 0 ? (h.scrollTop / total) * 100 : 0;
+    bar.style.width = `${pct}%`;
+  };
+  document.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+</script>
+
+<style>
+  .progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    width: 0;
+    background: var(--primary);
+    z-index: 60;
+    transition: width 90ms linear;
+  }
+
+  .head {
+    max-width: 720px;
+    margin: 0 auto 40px;
+    text-align: center;
+  }
+
+  .head-meta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-faint);
+  }
+
+  .dot {
+    opacity: 0.5;
+  }
+
+  .mood {
+    padding: 0 10px;
+    border-radius: var(--radius-pill);
+    background: var(--accent-soft);
+    color: var(--text-muted);
+    border: 1px solid var(--accent);
+  }
+
+  .head-title {
+    margin: 14px 0 18px;
+    font-family: var(--font-serif);
+    font-size: 32px;
+    font-weight: 500;
+    line-height: 1.42;
+  }
+
+  .head-tags {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .layout {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  .side {
+    display: none;
+  }
+
+  .toc {
+    padding: 16px 18px;
+    font-size: 13px;
+  }
+
+  .toc-title {
+    font-size: 12px;
+    color: var(--text-faint);
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+  }
+
+  .toc ul {
+    list-style: none;
+  }
+
+  .toc li {
+    line-height: 1.7;
+  }
+
+  .toc li.d3 {
+    padding-left: 12px;
+  }
+
+  .toc a {
+    color: var(--text-muted);
+  }
+
+  .toc a:hover {
+    color: var(--primary-strong);
+  }
+
+  .pager {
+    max-width: 720px;
+    margin: 56px auto 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .pager-link {
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .pager-link:hover {
+    transform: translateY(-3px);
+    border-color: var(--border-strong);
+  }
+
+  .pager-label {
+    font-size: 12px;
+    color: var(--text-faint);
+  }
+
+  .pager-title {
+    font-size: 14.5px;
+    color: var(--text);
+  }
+
+  .pager-link + span:last-child {
+    display: none;
+  }
+
+  .comment-block {
+    max-width: 720px;
+    margin: 56px auto 0;
+  }
+
+  .back {
+    margin-top: 32px;
+    text-align: center;
+    font-size: 13.5px;
+  }
+
+  @media (min-width: 1140px) {
+    .layout {
+      max-width: none;
+      display: grid;
+      grid-template-columns: 1fr 720px 1fr;
+      gap: 32px;
+    }
+    .prose {
+      grid-column: 2;
+    }
+    .side {
+      display: block;
+      grid-column: 3;
+    }
+    .toc {
+      position: sticky;
+      top: 90px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .head-title {
+      font-size: 24px;
+    }
+    .pager {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

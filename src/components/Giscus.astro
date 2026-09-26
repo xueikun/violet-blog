@@ -1,0 +1,193 @@
+---
+import comments from "../data/comments.json";
+
+interface Props {
+  mapping?: "pathname" | "url" | "title" | "og:title" | "specific";
+  term?: string;
+}
+
+const { mapping = "pathname", term = "" } = Astro.props;
+
+const configured = Boolean(
+  comments.enabled &&
+    comments.repo &&
+    comments.repoId &&
+    comments.categoryId
+);
+
+const isDev = import.meta.env.DEV;
+---
+
+<section class="comments" id="comments">
+  {
+    configured ? (
+      <div
+        class="giscus-host"
+        data-repo={comments.repo}
+        data-repo-id={comments.repoId}
+        data-category={comments.category}
+        data-category-id={comments.categoryId}
+        data-mapping={mapping}
+        data-term={term}
+        data-reactions-enabled={comments.reactionsEnabled}
+        data-input-position={comments.inputPosition}
+        data-lang={comments.lang}
+        data-strict={comments.strict}
+        data-emit-metadata={comments.emitMetadata}
+      />
+    ) : isDev ? (
+      <div class="cfg-hint">
+        <p class="cfg-title">评论区还未接入</p>
+        <p class="cfg-body">
+          打开 <code>src/data/comments.json</code>,把 <code>enabled</code> 改成
+          <code>true</code>,再填上 <code>repo</code> / <code>repoId</code> /
+          <code>categoryId</code> 三项即可。
+        </p>
+        <p class="cfg-body">
+          这三个值在 <a href="https://giscus.app/zh-CN" target="_blank" rel="noopener">giscus.app</a>
+          页面下方配置生成。详细步骤见 <code>docs/评论接入说明.md</code>。
+        </p>
+      </div>
+    ) : (
+      <p class="cfg-off">评论暂未开放。</p>
+    )
+  }
+</section>
+
+<script>
+  const host = document.querySelector<HTMLElement>(".giscus-host");
+
+  if (host) {
+    const ATTR_MAP: Record<string, string> = {
+      repo: "repo",
+      repoId: "repo-id",
+      category: "category",
+      categoryId: "category-id",
+      mapping: "mapping",
+      term: "term",
+      reactionsEnabled: "reactions-enabled",
+      inputPosition: "input-position",
+      lang: "lang",
+      strict: "strict",
+      emitMetadata: "emit-metadata",
+    };
+
+    let loaded = false;
+    let themeTimer = 0;
+
+    const currentTheme = () =>
+      document.documentElement.getAttribute("data-theme") === "dark"
+        ? "dark"
+        : "light";
+
+    const syncTheme = () => {
+      const frame = document.querySelector<HTMLIFrameElement>(
+        "iframe.giscus-frame"
+      );
+      if (!frame?.contentWindow) return;
+      frame.contentWindow.postMessage(
+        { giscus: { setConfig: { theme: currentTheme() } } },
+        "https://giscus.app"
+      );
+    };
+
+    const load = () => {
+      if (loaded) return;
+      loaded = true;
+
+      const script = document.createElement("script");
+      script.src = "https://giscus.app/client.js";
+      script.async = true;
+      script.crossOrigin = "anonymous";
+
+      for (const [key, attr] of Object.entries(ATTR_MAP)) {
+        const value = host.dataset[key];
+        if (value) script.setAttribute(`data-${attr}`, value);
+      }
+
+      script.setAttribute("data-loading", "lazy");
+      script.setAttribute("data-theme", currentTheme());
+
+      host.appendChild(script);
+
+      window.clearInterval(themeTimer);
+      let tries = 0;
+      themeTimer = window.setInterval(() => {
+        syncTheme();
+        tries += 1;
+        if (tries > 20) window.clearInterval(themeTimer);
+      }, 500);
+    };
+
+    if ("IntersectionObserver" in window) {
+      const io = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((entry) => entry.isIntersecting)) {
+            io.disconnect();
+            load();
+          }
+        },
+        { rootMargin: "400px 0px" }
+      );
+      io.observe(host);
+    } else {
+      load();
+    }
+
+    new MutationObserver(() => {
+      syncTheme();
+    }).observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+  }
+</script>
+
+<style>
+  .comments {
+    margin-top: 56px;
+  }
+
+  .giscus-host {
+    min-height: 120px;
+  }
+
+  .cfg-hint {
+    padding: 22px 26px;
+    border: 1.5px dashed var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--bg-sunken);
+  }
+
+  .cfg-title {
+    font-size: 14.5px;
+    color: var(--primary-strong);
+    margin-bottom: 8px;
+  }
+
+  .cfg-body {
+    font-size: 13px;
+    line-height: 1.85;
+    color: var(--text-muted);
+  }
+
+  .cfg-body + .cfg-body {
+    margin-top: 6px;
+  }
+
+  .cfg-hint code {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    padding: 1px 6px;
+    border-radius: 6px;
+    background: var(--primary-soft);
+    color: var(--primary-strong);
+  }
+
+  .cfg-off {
+    font-size: 13.5px;
+    color: var(--text-faint);
+    text-align: center;
+    padding: 24px 0;
+  }
+</style>

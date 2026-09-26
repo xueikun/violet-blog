@@ -1,0 +1,122 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PostCard from "../../components/PostCard.astro";
+
+const posts = (await getCollection("posts", ({ data }) => !data.draft)).sort(
+  (a, b) => {
+    if (a.data.top !== b.data.top) return a.data.top ? -1 : 1;
+    return b.data.date.valueOf() - a.data.date.valueOf();
+  }
+);
+
+const tagCount = new Map<string, number>();
+posts.forEach((p) =>
+  p.data.tags.forEach((t) => tagCount.set(t, (tagCount.get(t) ?? 0) + 1))
+);
+const tags = [...tagCount.entries()].sort((a, b) => b[1] - a[1]);
+
+const categories = [...new Set(posts.map((p) => p.data.category))];
+---
+
+<BaseLayout title="文章" description="全部文章列表">
+  <div class="wrap page">
+    <h1 class="sec-title">
+      全部文章 <span class="sec-sub">{posts.length} 篇</span>
+    </h1>
+
+    <div class="filters" id="filters">
+      <button class="pill active" type="button" data-tag="*">全部</button>
+      {tags.map(([tag]) => <button class="pill" type="button" data-tag={tag}>{tag}</button>)}
+    </div>
+
+    <ul class="list" id="list">
+      {
+        posts.map((post) => (
+          <li class="item reveal" data-tags={post.data.tags.join(",")}>
+            <PostCard post={post} />
+          </li>
+        ))
+      }
+    </ul>
+
+    <p class="empty" id="empty" hidden>
+      这个标签下暂时还没有文章 (´・ω・`)
+    </p>
+  </div>
+</BaseLayout>
+
+<script>
+  const filters = document.getElementById("filters");
+  const list = document.getElementById("list");
+  const empty = document.getElementById("empty");
+  const buttons = filters?.querySelectorAll<HTMLButtonElement>("[data-tag]");
+  const items = list?.querySelectorAll<HTMLLIElement>(".item");
+
+  function apply(tag: string) {
+    if (!buttons || !items) return;
+    buttons.forEach((b) =>
+      b.classList.toggle("active", b.dataset.tag === tag)
+    );
+    let visible = 0;
+    items.forEach((item) => {
+      const tags = (item.dataset.tags ?? "").split(",");
+      const show = tag === "*" || tags.includes(tag);
+      item.hidden = !show;
+      if (show) visible += 1;
+    });
+    if (empty) empty.hidden = visible > 0;
+  }
+
+  buttons?.forEach((btn) => {
+    btn.addEventListener("click", () => apply(btn.dataset.tag ?? "*"));
+  });
+
+  const initial = new URLSearchParams(location.search).get("tag");
+  if (initial) apply(initial);
+</script>
+
+<style>
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 28px;
+  }
+
+  .filters .pill {
+    cursor: pointer;
+    font-family: inherit;
+    background: var(--bg-elevated);
+    color: var(--text-muted);
+    border: 1.5px solid var(--border);
+    padding: 4px 14px;
+    font-size: 13px;
+  }
+
+  .filters .pill:hover {
+    color: var(--primary-strong);
+    border-color: var(--primary);
+  }
+
+  .filters .pill.active {
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    border-color: var(--btn-edge);
+    box-shadow: 0 2px 0 var(--btn-edge);
+  }
+
+  .list {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(272px, 1fr));
+    gap: 20px;
+  }
+
+  .empty {
+    padding: 60px 0;
+    text-align: center;
+    color: var(--text-faint);
+    font-size: 14px;
+  }
+</style>

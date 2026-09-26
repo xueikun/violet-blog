@@ -1,0 +1,181 @@
+---
+import site from "../data/site.json";
+
+const nav = [
+  { href: "/", label: "首页" },
+  { href: "/posts/", label: "文章" },
+  { href: "/archive/", label: "归档" },
+  { href: "/guestbook/", label: "留言" },
+  { href: "/about/", label: "关于" },
+];
+
+const path = Astro.url.pathname;
+const isActive = (href: string) =>
+  href === "/" ? path === "/" : path.startsWith(href);
+---
+
+<header class="hd">
+  <div class="wrap hd-inner">
+    <a class="brand" href="/">
+      <span class="brand-mark" aria-hidden="true">✧</span>
+      <span class="brand-text">{site.name}</span>
+    </a>
+
+    <nav class="nav" aria-label="主导航">
+      {
+        nav.map((item) => (
+          <a
+            href={item.href}
+            class:list={["nav-link", { active: isActive(item.href) }]}
+          >
+            {item.label}
+          </a>
+        ))
+      }
+    </nav>
+
+    <button
+      id="theme-toggle"
+      class="theme-btn"
+      type="button"
+      aria-label="切换深浅主题"
+      title="切换深浅主题"
+    >
+      <span class="ico ico-sun" aria-hidden="true">☀</span>
+      <span class="ico ico-moon" aria-hidden="true">☾</span>
+    </button>
+  </div>
+</header>
+
+<script>
+  const root = document.documentElement;
+  const btn = document.getElementById("theme-toggle");
+
+  btn?.addEventListener("click", () => {
+    const next =
+      root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    try {
+      localStorage.setItem("theme", next);
+    } catch (e) {
+      /* 隐私模式下忽略 */
+    }
+  });
+</script>
+
+<style>
+  .hd {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: color-mix(in srgb, var(--bg) 86%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1.5px solid var(--border);
+  }
+
+  .hd-inner {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    height: 66px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: var(--text);
+    font-family: var(--font-serif);
+    font-size: 21px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    flex: none;
+  }
+
+  .brand-mark {
+    color: var(--primary);
+    font-size: 20px;
+    line-height: 1;
+  }
+
+  .brand:hover .brand-mark {
+    animation: spin 900ms var(--ease);
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(180deg);
+    }
+  }
+
+  .nav {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+  }
+
+  .nav-link {
+    padding: 6px 14px;
+    border-radius: var(--radius-pill);
+    font-size: 14px;
+    color: var(--text-muted);
+    border: 1.5px solid transparent;
+    transition: all var(--dur) var(--ease);
+  }
+
+  .nav-link:hover {
+    color: var(--primary-strong);
+    background: var(--primary-soft);
+  }
+
+  .nav-link.active {
+    color: var(--primary-strong);
+    background: var(--primary-soft);
+    border-color: var(--primary);
+  }
+
+  .theme-btn {
+    flex: none;
+    width: 38px;
+    height: 38px;
+    border-radius: var(--radius-pill);
+    border: 1.5px solid var(--border);
+    background: var(--bg-elevated);
+    display: grid;
+    place-items: center;
+    font-size: 16px;
+    color: var(--primary-strong);
+    transition: all var(--dur) var(--ease);
+  }
+
+  .theme-btn:hover {
+    border-color: var(--primary);
+    transform: rotate(-15deg);
+  }
+
+  .ico-moon {
+    display: none;
+  }
+
+  :global([data-theme="dark"]) .ico-sun {
+    display: none;
+  }
+
+  :global([data-theme="dark"]) .ico-moon {
+    display: block;
+  }
+
+  @media (max-width: 640px) {
+    .hd-inner {
+      height: 58px;
+      gap: 10px;
+    }
+    .brand-text {
+      display: none;
+    }
+    .nav-link {
+      padding: 6px 10px;
+      font-size: 13px;
+    }
+  }
+</style>

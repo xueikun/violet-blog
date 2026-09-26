@@ -1,0 +1,115 @@
+/* ============================================================
+   设计 Token —— 全站唯一的颜色定义处
+   组件内禁止写死色值,一律引用变量
+   主题:薇尔莉特 · 紫罗兰永恒花园
+
+   对比度记录(WCAG):
+   - 浅色 正文 #3d3548 / #faf7fc ≈ 11.3:1
+   - 浅色 按钮底 #6f5ca8 + 白字 ≈ 5.6:1
+   - 深色 正文 #ede9f5 / #141220 ≈ 15.0:1
+   - 深色 按钮底 #a78bc8 + 深字 ≈ 7.2:1
+   按钮刻意不用 --primary 做底,那只有 3.6:1,不达标
+   ============================================================ */
+
+:root {
+  /* 主题 A · 紫罗兰手记(默认浅色) */
+  --bg: #faf7fc;
+  --bg-elevated: #ffffff;
+  --bg-sunken: #f2edf8;
+
+  --primary: #8b7bc7;
+  --primary-strong: #6f5ca8;
+  --primary-soft: #efebf9;
+
+  --secondary: #7fb3d5;
+  --secondary-soft: #e8f2f9;
+
+  --accent: #d4a537;
+  --accent-soft: #fbf1da;
+
+  --text: #3d3548;
+  --text-muted: #8f88a3;
+  --text-faint: #bdb7cc;
+
+  --border: #e6e0f0;
+  --border-strong: #8b7bc7;
+  --shadow-sticker: 0 2px 0 rgba(139, 123, 199, 0.2);
+
+  /* 按钮专用(保证对比度达标) */
+  --btn-bg: #6f5ca8;
+  --btn-fg: #ffffff;
+  --btn-edge: #5a4a8c;
+
+  /* 字体 —— 标题走衬线,呼应手记人偶的书信气质 */
+  --font-sans: "LXGW WenKai", "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-serif: "Cormorant Garamond", "EB Garamond", "Noto Serif SC",
+    "Source Han Serif SC", "Songti SC", "SimSun", Georgia, serif;
+  --font-mono: "JetBrains Mono", "Cascadia Code", Consolas, "Courier New",
+    monospace;
+
+  /* 尺寸与节奏 */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+  --wrap: 1080px;
+  --measure: 40ch;
+  --dur: 220ms;
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* 代码高亮(Shiki css-variables 主题) */
+  --astro-code-color-text: #24292e;
+  --astro-code-color-background: #f2edf8;
+  --astro-code-token-constant: #005cc5;
+  --astro-code-token-string: #032f62;
+  --astro-code-token-comment: #6a737d;
+  --astro-code-token-keyword: #d73a49;
+  --astro-code-token-parameter: #24292e;
+  --astro-code-token-function: #6f42c1;
+  --astro-code-token-string-expression: #032f62;
+  --astro-code-token-punctuation: #24292e;
+  --astro-code-token-link: #032f62;
+}
+
+[data-theme="dark"] {
+  /* 主题 B · 夜之书信(深色) */
+  --bg: #141220;
+  --bg-elevated: #1e1b2e;
+  --bg-sunken: #0f0d18;
+
+  --primary: #a78bc8;
+  --primary-strong: #c0a5dd;
+  --primary-soft: #2e2745;
+
+  --secondary: #89b8db;
+  --secondary-soft: #1b2c3a;
+
+  --accent: #e0b84c;
+  --accent-soft: #3a2f14;
+
+  --text: #ede9f5;
+  --text-muted: #8a83a3;
+  --text-faint: #5b5470;
+
+  --border: #2b2740;
+  --border-strong: #a78bc8;
+  --shadow-sticker: 0 2px 0 rgba(167, 139, 200, 0.28);
+
+  /* 深色下反过来:亮紫底 + 深色字,对比度更高 */
+  --btn-bg: #a78bc8;
+  --btn-fg: #141220;
+  --btn-edge: #c9b3e2;
+
+  --astro-code-color-text: #c9d1d9;
+  --astro-code-color-background: #0f0d18;
+  --astro-code-token-constant: #79c0ff;
+  --astro-code-token-string: #a5d6ff;
+  --astro-code-token-comment: #8b949e;
+  --astro-code-token-keyword: #ff7b72;
+  --astro-code-token-parameter: #c9d1d9;
+  --astro-code-token-function: #d2a8ff;
+  --astro-code-token-string-expression: #a5d6ff;
+  --astro-code-token-punctuation: #c9d1d9;
+  --astro-code-token-link: #a5d6ff;
+}

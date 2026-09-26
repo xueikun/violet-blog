@@ -1,0 +1,169 @@
+---
+---
+
+<canvas id="petals" aria-hidden="true"></canvas>
+
+<style>
+  #petals {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 45;
+  }
+</style>
+
+<script>
+  interface Petal {
+    x: number;
+    y: number;
+    size: number;
+    vy: number;
+    vx: number;
+    rot: number;
+    vrot: number;
+    sway: number;
+    swaySpeed: number;
+    color: string;
+    alpha: number;
+    star: boolean;
+  }
+
+  const canvas = document.getElementById("petals") as HTMLCanvasElement | null;
+  const ctx = canvas?.getContext("2d") ?? null;
+
+  const reduceMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)"
+  ).matches;
+  const smallScreen = window.matchMedia("(max-width: 820px)").matches;
+
+  if (canvas && ctx && !reduceMotion && !smallScreen) {
+    let w = 0;
+    let h = 0;
+    let raf = 0;
+    let colors: string[] = [];
+
+    const readColors = () => {
+      const s = getComputedStyle(document.documentElement);
+      const pick = (name: string, fallback: string) =>
+        s.getPropertyValue(name).trim() || fallback;
+      colors = [
+        pick("--primary", "#8b7bc7"),
+        pick("--primary-strong", "#6f5ca8"),
+        pick("--secondary", "#7fb3d5"),
+        pick("--accent", "#d4a537"),
+      ];
+    };
+
+    const randomColor = () =>
+      colors[Math.floor(Math.random() * colors.length)] ?? "#8b7bc7";
+
+    const makePetal = (seeded: boolean): Petal => {
+      const star = Math.random() < 0.18;
+      return {
+        x: Math.random() * w,
+        y: seeded ? Math.random() * h : -30,
+        size: star ? 5 + Math.random() * 4 : 6 + Math.random() * 8,
+        vy: 0.3 + Math.random() * 0.6,
+        vx: -0.2 + Math.random() * 0.4,
+        rot: Math.random() * Math.PI * 2,
+        vrot: (Math.random() - 0.5) * 0.04,
+        sway: Math.random() * Math.PI * 2,
+        swaySpeed: 0.006 + Math.random() * 0.012,
+        color: randomColor(),
+        alpha: 0.22 + Math.random() * 0.34,
+        star,
+      };
+    };
+
+    const resize = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      w = window.innerWidth;
+      h = window.innerHeight;
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+
+    const drawPetal = (p: Petal) => {
+      const s = p.size;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.globalAlpha = p.alpha;
+      ctx.fillStyle = p.color;
+
+      if (p.star) {
+        ctx.beginPath();
+        ctx.moveTo(0, -s);
+        ctx.quadraticCurveTo(s * 0.18, -s * 0.18, s, 0);
+        ctx.quadraticCurveTo(s * 0.18, s * 0.18, 0, s);
+        ctx.quadraticCurveTo(-s * 0.18, s * 0.18, -s, 0);
+        ctx.quadraticCurveTo(-s * 0.18, -s * 0.18, 0, -s);
+        ctx.fill();
+      } else {
+        ctx.beginPath();
+        ctx.moveTo(0, -s);
+        ctx.bezierCurveTo(s * 0.9, -s * 0.55, s * 0.62, s * 0.72, 0, s);
+        ctx.bezierCurveTo(-s * 0.62, s * 0.72, -s * 0.9, -s * 0.55, 0, -s);
+        ctx.fill();
+      }
+      ctx.restore();
+    };
+
+    let petals: Petal[] = [];
+
+    const tick = () => {
+      ctx.clearRect(0, 0, w, h);
+      for (const p of petals) {
+        p.sway += p.swaySpeed;
+        p.y += p.vy;
+        p.x += p.vx + Math.sin(p.sway) * 0.32;
+        p.rot += p.vrot;
+
+        if (p.y > h + 40) {
+          Object.assign(p, makePetal(false));
+        }
+        if (p.x < -50) p.x = w + 30;
+        if (p.x > w + 50) p.x = -30;
+
+        drawPetal(p);
+      }
+      raf = window.requestAnimationFrame(tick);
+    };
+
+    const start = () => {
+      resize();
+      readColors();
+      const count = Math.min(20, Math.max(10, Math.round(w / 90)));
+      petals = Array.from({ length: count }, () => makePetal(true));
+      cancelAnimationFrame(raf);
+      raf = window.requestAnimationFrame(tick);
+    };
+
+    start();
+
+    let resizeTimer = 0;
+    window.addEventListener("resize", () => {
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(start, 240);
+    });
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        cancelAnimationFrame(raf);
+      } else {
+        cancelAnimationFrame(raf);
+        raf = window.requestAnimationFrame(tick);
+      }
+    });
+
+    new MutationObserver(readColors).observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+  } else if (canvas) {
+    canvas.style.display = "none";
+  }
+</script>
